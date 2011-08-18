@@ -1,19 +1,6 @@
 package de.granny
 
-object SolitaireStartNode extends StartNode(new BoardSignature(SolitaireBoard.uniqueSignature.hashCode, null, SolitaireBoard)) {
-
-}
-
-object EasyGame extends StartNode(new BoardSignature(EasyBoard.uniqueSignature.hashCode, null, EasyBoard)){
-}
-
-object EasyBoard extends Board(
-    List(2, 2, 1, 2, 2) ::
-    List(2, 2, 1, 2, 2) ::
-    List(2, 2, 0, 2, 2) ::
-    List(2, 2, 2, 2, 2) ::
-    List(2, 2, 2, 2, 2) :: Nil)
-
+//BEGIN Solitaire Game
 object SolitaireBoard extends Board(
     List(2, 2, 1, 1, 1, 2, 2) ::
     List(2, 2, 1, 1, 1, 2, 2) ::
@@ -22,4 +9,24 @@ object SolitaireBoard extends Board(
     List(1, 1, 1, 1, 1, 1, 1) ::
     List(2, 2, 1, 1, 1, 2, 2) ::
     List(2, 2, 1, 1, 1, 2, 2) :: Nil)
+// END Solitaire Game
+
+// BEGIN EasyGame
+object EasyBoard extends Board(
+    List(2, 2, 1, 2, 2) ::
+    List(2, 2, 1, 2, 2) ::
+    List(2, 2, 0, 2, 2) ::
+    List(2, 2, 2, 2, 2) ::
+    List(2, 2, 2, 2, 2) :: Nil)
+// END EasyGame
+
+// BEGIN EasyGame2
+object EasyBoard2 extends Board(
+    List(2, 2, 1, 2, 2) ::
+    List(2, 2, 1, 2, 2) ::
+    List(2, 2, 0, 2, 2) ::
+    List(2, 2, 1, 2, 2) ::
+    List(2, 2, 2, 2, 2) :: Nil)
+// END EasyGame2
+
 

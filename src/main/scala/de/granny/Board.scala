@@ -75,9 +75,11 @@ class Board(val board: List[List[Int]]) {
     input.reverse
   }
 
-  def clockwise(): Board = new Board(turnBoardClockwise(board))
+  def mirror : Board = new Board(mirror(board))
 
-  def counterClockwise(): Board = new Board(turnBoardCounterClockwise(board))
+  def clockwise : Board = new Board(turnBoardClockwise(board))
+
+  def counterClockwise : Board = new Board(turnBoardCounterClockwise(board))
 
   override def toString() = state + "\n" + board.map(_.map(_ match {
     case 0 => " "
@@ -143,4 +145,32 @@ class BoardTranslation(val clockwise: Int, val mirror: Boolean) {
  */
 class BoardSignature(val hashCod: Int, val translation: BoardTranslation,val board: Board) {
   override def toString = board.toString
+}
+
+
+/*
+* represents a draw to board
+* @param drawList: a list sorted from first draw to last draw
+*/
+class DrawHistory (val drawList : List[BoardSignature]){
+  override def toString : String= {
+    def recToString(clockwisePrev : Int, mirrorPrev : Boolean, remaining : List[BoardSignature]) : String = {
+      def correctView(clockwise : Int, mirror : Boolean, board : Board) : Board = {
+        def unturn (board : Board, clockwise : Int) : Board = {
+          clockwise match {
+            case 0 => return board
+            case _ => return unturn(board.counterClockwise, clockwise -1)
+          }
+        }
+        val result = if (mirror) board.mirror else board
+        return unturn(result, clockwise)
+      }
+      if(remaining.isEmpty) return ""
+      val actTrans = remaining.head.translation
+      val actClockwise = (clockwisePrev + actTrans.clockwise) % 4
+      val actMirror =  mirrorPrev && ! actTrans.mirror || !mirrorPrev && actTrans.mirror 
+      return correctView(actClockwise,actMirror,remaining.head.board).toString + recToString(actClockwise, actMirror, remaining.tail)
+    }
+    return recToString(0,false,drawList)
+  }
 }
