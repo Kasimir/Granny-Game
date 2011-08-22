@@ -1,5 +1,6 @@
 /**
 
+
 package de.granny
 
 import net.liftweb.mongodb._
@@ -45,4 +46,5 @@ class GameNodeDoc private() extends MongoRecord[GameNodeDoc]{
 
 object GameNodeDoc extends GameNodeDoc with MongoMetaRecord[GameNodeDoc]
 
+why is this commented out?
 **/
