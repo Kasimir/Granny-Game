@@ -1,7 +1,8 @@
 package de.granny
 
 import scala.collection.mutable.Map
-import akka.stm._
+//import akka.stm._
+import scala.actors._
 
 class Player() {
   /*
@@ -19,7 +20,7 @@ class Player() {
         return ReferenceNode(current, node, NodeStore(current.hashCode)) :: tailResult
       else if (current.board.won) return WonNode(current, node) :: tailResult
       val regularDrawNode = RegularDrawNode(current, node)
-      NodeStore += (current.hashCode -> regularDrawNode)
+      NodeStore put (current.hashCode , regularDrawNode)
       return regularDrawNode :: tailResult
     }
     return processChildren(node.boardSignature.board.uniqueNextBoards)
@@ -49,13 +50,20 @@ class Player() {
 
 object Player extends Player{}
 
+class ActorPlayer(board : Board) extends Player with Actor{   
+  def act: Unit = {
+    solve(board)
+  }  
+}
+
+
 abstract class GameNode(val boardSignature: BoardSignature) {
   def draws: List[BoardSignature] = {  
     def extractDraws(node: GameNode): List[BoardSignature] = {
       node match {
-        case tNode: StartNode => return tNode.startSignature :: Nil
+        case tNode: StartNode => return tNode.boardSignature :: Nil
         case tNode: RegularDrawNode => return tNode.boardSignature :: extractDraws(tNode.fatherNode)
-        case tNode: WonNode => return tNode.wonSignature :: extractDraws(tNode.wonFatherNode) 
+        case tNode: WonNode => return tNode.boardSignature :: extractDraws(tNode.fatherNode) 
         case _ => return Nil
       }
     }
@@ -63,19 +71,20 @@ abstract class GameNode(val boardSignature: BoardSignature) {
   }
 }
 
-case class RegularDrawNode(val regSignature: BoardSignature, val fatherNode: GameNode) extends GameNode(regSignature) {
+case class StartNode(override val boardSignature: BoardSignature) extends GameNode(boardSignature) {
+  override def toString = "Start Board " + boardSignature
+}
+
+case class RegularDrawNode(override val boardSignature: BoardSignature, val fatherNode: GameNode) extends GameNode(boardSignature) {
   override def toString = boardSignature.toString
 }
 
-case class WonNode(val wonSignature: BoardSignature, val wonFatherNode: GameNode) extends GameNode(wonSignature) {
+case class WonNode(override val boardSignature: BoardSignature, val fatherNode: GameNode) extends GameNode(boardSignature) {
   override def toString = boardSignature.toString
-
 }
 
-case class StartNode(val startSignature: BoardSignature) extends GameNode(startSignature) {
-  override def toString = "Start Board " + startSignature
-}
 
-case class ReferenceNode(val refSignature: BoardSignature, val refFatherNode: GameNode, val referencedNode: GameNode) extends GameNode(refSignature) {
+
+case class ReferenceNode(override val boardSignature: BoardSignature, val fatherNode: GameNode, val referencedNode: GameNode) extends GameNode(boardSignature) {
   override def toString = "referencing: " + referencedNode
 }
