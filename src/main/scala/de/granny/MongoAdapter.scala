@@ -1,6 +1,5 @@
 /**
 
-
 package de.granny
 
 import net.liftweb.mongodb._
@@ -26,7 +25,6 @@ class MongoAdapter {
 }
 
 
-
 class GameNodeDoc private() extends MongoRecord[GameNodeDoc]{
   def meta = GameNodeDoc
   
@@ -41,10 +39,10 @@ class GameNodeDoc private() extends MongoRecord[GameNodeDoc]{
   object clockwise extends IntField(this)
   
   //Board
-  object board extends 
+  object board extends StringField(this,100) 
 }
 
-object GameNodeDoc extends GameNodeDoc with MongoMetaRecord[GameNodeDoc]
+object GameNodeDoc extends GameNodeDoc with MongoMetaRecord[GameNodeDoc]{
+}
 
-why is this commented out?
 **/
