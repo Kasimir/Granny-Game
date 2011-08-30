@@ -16,12 +16,14 @@ class Player() {
       if (uniqueNextSignatures.isEmpty) return Nil
       val tailResult = processChildren(uniqueNextSignatures.tail)
       val current = uniqueNextSignatures.head
-      if (NodeStore.contains(current.hashCode))
-        return ReferenceNode(current, node, NodeStore(current.hashCode)) :: tailResult
-      else if (current.board.won) return WonNode(current, node) :: tailResult
-      val regularDrawNode = RegularDrawNode(current, node)
-      NodeStore put (current.hashCode , regularDrawNode)
-      return regularDrawNode :: tailResult
+      val storedObject = NodeStore.getNode(current.signatureId)
+      val resultNode  = (storedObject,current.board.won) match {
+        case (Some(x),_) => ReferenceNode(current, node.boardSignature.signatureId, current.signatureId)
+        case (None,true) => WonNode(current, node.boardSignature.signatureId)
+        case (None,false)=> RegularDrawNode(current, node.boardSignature.signatureId)
+      }            
+      NodeStore.saveNode(resultNode)
+      return resultNode :: tailResult
     }
     return processChildren(node.boardSignature.board.uniqueNextBoards)
   }
@@ -42,10 +44,12 @@ class Player() {
   }
   
   def solve(board: Board) : List[GameNode] = {
-    return solveDeep(makeStartNode(board))
+    val startNode = makeStartNode(board)
+    NodeStore.saveNode(startNode)
+    return solveDeep(startNode)
   } 
   
-  private def makeStartNode(board: Board) : StartNode = new StartNode(new BoardSignature(board.uniqueSignature.hashCode, new BoardTranslation(0,false), board))
+  private def makeStartNode(board: Board) : StartNode = new StartNode(new BoardSignature(board.uniqueSignature.signatureId, new BoardTranslation(0,false), board))
 }
 
 object Player extends Player{}
@@ -60,10 +64,11 @@ class ActorPlayer(board : Board) extends Player with Actor{
 abstract class GameNode(val boardSignature: BoardSignature) {
   def draws: List[BoardSignature] = {  
     def extractDraws(node: GameNode): List[BoardSignature] = {
+      def extractIdsDraws(id:Int): List[BoardSignature] = NodeStore.getNode(id) match {case Some(fNode) => extractDraws(fNode);case None => Nil}        
       node match {
         case tNode: StartNode => return tNode.boardSignature :: Nil
-        case tNode: RegularDrawNode => return tNode.boardSignature :: extractDraws(tNode.fatherNode)
-        case tNode: WonNode => return tNode.boardSignature :: extractDraws(tNode.fatherNode) 
+        case tNode: RegularDrawNode => return tNode.boardSignature :: extractIdsDraws(tNode.fatherNodeId)
+        case tNode: WonNode => return tNode.boardSignature :: extractIdsDraws(tNode.fatherNodeId) 
         case _ => return Nil
       }
     }
@@ -75,16 +80,22 @@ case class StartNode(override val boardSignature: BoardSignature) extends GameNo
   override def toString = "Start Board " + boardSignature
 }
 
-case class RegularDrawNode(override val boardSignature: BoardSignature, val fatherNode: GameNode) extends GameNode(boardSignature) {
+case class RegularDrawNode(override val boardSignature: BoardSignature, val fatherNodeId: Int) extends GameNode(boardSignature) {
   override def toString = boardSignature.toString
 }
 
-case class WonNode(override val boardSignature: BoardSignature, val fatherNode: GameNode) extends GameNode(boardSignature) {
+case class WonNode(override val boardSignature: BoardSignature, val fatherNodeId: Int) extends GameNode(boardSignature) {
   override def toString = boardSignature.toString
 }
 
 
 
-case class ReferenceNode(override val boardSignature: BoardSignature, val fatherNode: GameNode, val referencedNode: GameNode) extends GameNode(boardSignature) {
-  override def toString = "referencing: " + referencedNode
+case class ReferenceNode(override val boardSignature: BoardSignature, val fatherNodeId: Int, val referencedNodeId: Int) extends GameNode(boardSignature) {
+  override def toString = "referencing: " + referencedNodeId
+}
+
+
+trait NodeSave {
+  def saveNode(node:GameNode) : Unit
+  def getNode(id:Int) : Option[GameNode]
 }

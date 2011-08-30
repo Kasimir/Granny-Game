@@ -1,19 +1,16 @@
 package de.granny
 
-//import org.scala-tools.scala-stm._
+import scala.collection.mutable.HashMap
 
-object NodeStore{
-  def contains(hashCode:Int): Boolean = {
-    return MongoAdapter.findGameNode(hashCode) match ( case Some(x) : true ; case _ : false)
-  }
-  
-  def put (key :Int, value :GameNode) : Unit ={
-    MongoAdapter.storeGameNode(value)
-  }
-
-  def apply(hashCode :Int): GameNode = {
-    return MongoAdapter.findGameNode(hashCode) match ( case Some(x) : x ; case _ : null)
-  }
+object NodeStore extends MongoNodeStore {
 }
 
-// extends TMap[Int, GameNode]
+class HashMapNodeStore extends NodeSave {
+  val myMap = new HashMap[Int,GameNode]
+  def saveNode(node:GameNode) : Unit = {
+    myMap += (node.hashCode -> node)
+  }
+    
+  def getNode(id:Int) : Option[GameNode] = myMap.get(id)
+
+}

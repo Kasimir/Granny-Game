@@ -7,7 +7,7 @@ class Board(val board: List[List[Int]]) {
    * the default board
    */
   def this() = this(
-    List(1, 1, 1, 1, 1) ::
+      List(1, 1, 1, 1, 1) ::
       List(1, 1, 1, 1, 1) ::
       List(1, 1, 0, 1, 1) ::
       List(1, 1, 1, 1, 1) ::
@@ -15,7 +15,9 @@ class Board(val board: List[List[Int]]) {
 
   def state: String = if (won) "Won!" else if (nextBoards.isEmpty) "Impossible!" else ".. go on .."
 
-  def won = board.flatten.count(_ == 1) == 1
+  val stones = board.flatten.count(_ == 1)
+
+  def won = stones == 1
 
   /*
    * Lists possible next boards
@@ -90,7 +92,7 @@ class Board(val board: List[List[Int]]) {
   /*
    * gives the signature of a board. Therefore all translations of a board are calculated and the string with the lowest lexicografical value is taken 
    */
-  def uniqueSignature = translations.sortWith((s, t) => s.hashCode < t.hashCode).head
+  def uniqueSignature = translations.sortWith((s, t) => s.signatureId < t.signatureId).head
 
   /*
   * the translations of the board
@@ -125,7 +127,7 @@ class Board(val board: List[List[Int]]) {
     var result: List[BoardSignature] = Nil
     for (board <- nB) {
       val boardsSignature = board.uniqueSignature
-      if (!result.exists(_.hashCode == boardsSignature.hashCode)) {
+      if (!result.exists(_.signatureId == boardsSignature.signatureId)) {
         result = boardsSignature :: result
       }
     }
@@ -143,7 +145,7 @@ class BoardTranslation(val clockwise: Int, val mirror: Boolean) {
 /*
  * represents the signature of a board
  */
-class BoardSignature(val hashCod: Int, val translation: BoardTranslation,val board: Board) {
+class BoardSignature(val signatureId: Int, val translation: BoardTranslation,val board: Board) {
   override def toString = board.toString
 }
 
